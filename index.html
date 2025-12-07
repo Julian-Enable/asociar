@@ -69,7 +69,6 @@
                     <div class="input-wrapper">
                         <input type="text" id="cc-exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM/AA"
                             maxlength="5" required>
-                        <!-- Chrome prefers cc-exp for one field, or separate month/year inputs -->
                     </div>
                 </div>
 
@@ -97,7 +96,6 @@
     </main>
 
     <script>
-        // Simple script to update card preview for better UX (optional but adds to "premium" feel)
         const numInput = document.getElementById('cc-number');
         const nameInput = document.getElementById('cc-name');
         const expInput = document.getElementById('cc-exp');
@@ -117,130 +115,11 @@
             previewName.textContent = e.target.value || 'Nombre Apellido';
         });
 
-< !DOCTYPE html >
-            <html lang="es">
-
-                <head>
-                    <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Pago Seguro con Tarjeta</title>
-                            <link rel="stylesheet" href="styles.css">
-                                <link rel="preconnect" href="https://fonts.googleapis.com">
-                                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                                        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-                                        </head>
-
-                                        <body>
-                                            <div class="background-blobs">
-                                                <div class="blob blob-1"></div>
-                                                <div class="blob blob-2"></div>
-                                                <div class="blob blob-3"></div>
-                                            </div>
-
-                                            <main class="payment-container">
-                                                <div class="card-preview">
-                                                    <div class="card-glass">
-                                                        <div class="card-header">
-                                                            <span class="chip"></span>
-                                                            <span class="logo">VISA</span>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="card-number-preview">•••• •••• •••• ••••</div>
-                                                            <div class="card-details">
-                                                                <div class="card-holder-preview">
-                                                                    <span class="label">Titular</span>
-                                                                    <span class="value">Nombre Apellido</span>
-                                                                </div>
-                                                                <div class="card-date-preview">
-                                                                    <span class="label">Expira</span>
-                                                                    <span class="value">MM/AA</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <form class="payment-form" name="payment" method="POST" data-netlify="true" action="/success">
-                                                    <h1>Detalles de Pago</h1>
-
-                                                    <div class="form-group">
-                                                        <label for="cc-name">Nombre en la tarjeta</label>
-                                                        <div class="input-wrapper">
-                                                            <input type="text" id="cc-name" name="ccname" autocomplete="cc-name"
-                                                                placeholder="Como aparece en la tarjeta" required>
-                                                                <i class="icon-user"></i>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="form-group">
-                                                        <label for="cc-number">Número de tarjeta</label>
-                                                        <div class="input-wrapper">
-                                                            <input type="tel" id="cc-number" name="cardnumber" autocomplete="cc-number"
-                                                                placeholder="0000 0000 0000 0000" pattern="[0-9\s]{13,19}" maxlength="19" inputmode="numeric"
-                                                                required>
-                                                                <i class="icon-card"></i>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="form-row">
-                                                        <div class="form-group half">
-                                                            <label for="cc-exp">Vencimiento</label>
-                                                            <div class="input-wrapper">
-                                                                <input type="text" id="cc-exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM/AA"
-                                                                    maxlength="5" required>
-                        <!-- Chrome prefers cc-exp for one field, or separate month/year inputs -->
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group half">
-                                                            <label for="cc-csc">CVC / CVV</label>
-                                                            <div class="input-wrapper">
-                                                                <input type="tel" id="cc-csc" name="cvc" autocomplete="cc-csc" placeholder="123"
-                                                                    pattern="[0-9]{3,4}" maxlength="4" inputmode="numeric">
-                                                                    <i class="icon-lock"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <button type="submit" class="pay-button">
-                                                        Pagar Ahora
-                                                    </button>
-                                                    <p class="security-note">
-                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                                        </svg>
-                                                        Tus datos están protegidos con encriptación SSL de 256 bits.
-                                                    </p>
-                                                </form>
-                                            </main>
-
-                                            <script>
-        // Simple script to update card preview for better UX (optional but adds to "premium" feel)
-                                                const numInput = document.getElementById('cc-number');
-                                                const nameInput = document.getElementById('cc-name');
-                                                const expInput = document.getElementById('cc-exp');
-
-                                                const previewNum = document.querySelector('.card-number-preview');
-                                                const previewName = document.querySelector('.card-holder-preview .value');
-                                                const previewExp = document.querySelector('.card-date-preview .value');
-
-        numInput.addEventListener('input', (e) => {
-                                                    let val = e.target.value.replace(/\D/g, '').substring(0, 16);
-                                                val = val != '' ? val.match(/.{1, 4}/g).join(' ') : '';
-                                                e.target.value = val;
-                                                previewNum.textContent = val || '•••• •••• •••• ••••';
-        });
-
-        nameInput.addEventListener('input', (e) => {
-                                                    previewName.textContent = e.target.value || 'Nombre Apellido';
-        });
-
         expInput.addEventListener('input', (e) => {
-                                                    let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+            let val = e.target.value.replace(/\D/g, '').substring(0, 4);
             if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
-                                                e.target.value = val;
-                                                previewExp.textContent = val || 'MM/AA';
+            e.target.value = val;
+            previewExp.textContent = val || 'MM/AA';
         });
     </script>
 </body>
