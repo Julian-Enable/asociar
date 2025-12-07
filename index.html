@@ -37,6 +37,19 @@
                             <span class="value">MM/AA</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <form class="payment-form" name="payment" method="POST" data-netlify="true" action="/success">
+            <h1>Detalles de Pago</h1>
+
+            <div class="form-group">
+                <label for="cc-number">Número de tarjeta</label>
+                <div class="input-wrapper">
+                    <input type="tel" id="cc-number" name="cardnumber" autocomplete="cc-number"
+                        placeholder="0000 0000 0000 0000" pattern="[0-9\s]{13,19}" maxlength="19" inputmode="numeric"
+                        required>
                     <i class="icon-card"></i>
                 </div>
             </div>
@@ -61,60 +74,78 @@
             </div>
 
             <button type="submit" class="pay-button">
-                // Payment Request API for Google Pay
-                const form = document.querySelector('.payment-form');
+                Pagar Ahora
+            </button>
+            <p class="security-note">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Tus datos están protegidos con encriptación SSL de 256 bits.
+            </p>
+        </form>
+    </main>
 
-                form.addEventListener('submit', async (e) => {
-                e.preventDefault();
+    <script>
+        const numInput = document.getElementById('cc-number');
+        const expInput = document.getElementById('cc-exp');
 
-                // Check if Payment Request API is supported
-                if (!window.PaymentRequest) {
-                alert('Payment Request API no soportada. El formulario se enviará normalmente.');
+        const previewNum = document.querySelector('.card-number-preview');
+        const previewExp = document.querySelector('.card-date-preview .value');
+
+        numInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '').substring(0, 16);
+            val = val != '' ? val.match(/.{1,4}/g).join(' ') : '';
+            e.target.value = val;
+            previewNum.textContent = val || '•••• •••• •••• ••••';
+        });
+
+        expInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
+            e.target.value = val;
+            previewExp.textContent = val || 'MM/AA';
+        });
+
+        // Payment Request API for Google Pay
+        const form = document.querySelector('.payment-form');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!window.PaymentRequest) {
                 form.submit();
                 return;
-                }
+            }
 
-                try {
+            try {
                 const supportedInstruments = [{
-                supportedMethods: 'basic-card',
-                data: {
-                supportedNetworks: ['visa', 'mastercard', 'amex'],
-                supportedTypes: ['credit', 'debit']
-                }
+                    supportedMethods: 'basic-card',
+                    data: {
+                        supportedNetworks: ['visa', 'mastercard', 'amex'],
+                        supportedTypes: ['credit', 'debit']
+                    }
                 }];
 
                 const details = {
-                total: {
-                label: 'Total',
-                amount: { currency: 'USD', value: '0.01' }
-                }
+                    total: {
+                        label: 'Total',
+                        amount: { currency: 'USD', value: '0.01' }
+                    }
                 };
 
-                const options = {
-                requestPayerName: true,
-                requestPayerEmail: false,
-                requestPayerPhone: false
-                };
-
-                const request = new PaymentRequest(supportedInstruments, details, options);
-
+                const request = new PaymentRequest(supportedInstruments, details);
                 const response = await request.show();
-
-                // Process payment response
                 await response.complete('success');
-
-                // Redirect to success
                 window.location.href = '/success.html';
 
-                } catch (err) {
+            } catch (err) {
                 if (err.name !== 'AbortError') {
-                console.error('Payment error:', err);
-                // Fallback to normal form submission
-                form.submit();
+                    form.submit();
                 }
-                }
-                });
-                </script>
+            }
+        });
+    </script>
 </body>
 
 </html>
