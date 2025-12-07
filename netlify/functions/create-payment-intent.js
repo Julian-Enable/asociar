@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     try {
         // Create a PaymentIntent
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: 1, // $0.01 for testing
+            amount: 50, // $0.50 minimum for Stripe
             currency: 'usd',
             automatic_payment_methods: {
                 enabled: true,
