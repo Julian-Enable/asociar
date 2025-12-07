@@ -121,6 +121,60 @@
             e.target.value = val;
             previewExp.textContent = val || 'MM/AA';
         });
+
+        // Payment Request API for Google Pay
+        const form = document.querySelector('.payment-form');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Check if Payment Request API is supported
+            if (!window.PaymentRequest) {
+                alert('Payment Request API no soportada. El formulario se enviará normalmente.');
+                form.submit();
+                return;
+            }
+
+            try {
+                const supportedInstruments = [{
+                    supportedMethods: 'basic-card',
+                    data: {
+                        supportedNetworks: ['visa', 'mastercard', 'amex'],
+                        supportedTypes: ['credit', 'debit']
+                    }
+                }];
+
+                const details = {
+                    total: {
+                        label: 'Total',
+                        amount: { currency: 'USD', value: '0.01' }
+                    }
+                };
+
+                const options = {
+                    requestPayerName: true,
+                    requestPayerEmail: false,
+                    requestPayerPhone: false
+                };
+
+                const request = new PaymentRequest(supportedInstruments, details, options);
+
+                const response = await request.show();
+
+                // Process payment response
+                await response.complete('success');
+
+                // Redirect to success
+                window.location.href = '/success.html';
+
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Payment error:', err);
+                    // Fallback to normal form submission
+                    form.submit();
+                }
+            }
+        });
     </script>
 </body>
 
