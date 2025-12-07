@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <form class="payment-form" name="payment" method="POST" data-netlify="true" action="/success.html">
+        <form class="payment-form" name="payment" method="POST" id="payment-form">
             <h1>Detalles de Pago</h1>
 
             <div class="form-group">
@@ -122,6 +122,22 @@
             if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
             e.target.value = val;
             previewExp.textContent = val || 'MM/AA';
+        });
+
+        // Handle form submission - Chrome will show GPay prompt here
+        document.getElementById('payment-form').addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent actual submission
+
+            // Show success message in place
+            const form = e.target;
+            form.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 2.5rem; box-shadow: 0 10px 20px -5px rgba(22, 163, 74, 0.4);">✓</div>
+                    <h2 style="font-size: 1.75rem; margin-bottom: 1rem; color: var(--text-light);">¡Tarjeta Asociada!</h2>
+                    <p style="color: var(--text-dim); margin-bottom: 2rem;">Tu tarjeta ha sido guardada exitosamente en Google Pay.</p>
+                    <button onclick="location.reload()" style="padding: 1rem 2rem; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; font-weight: 500; cursor: pointer;">Agregar Otra Tarjeta</button>
+                </div>
+            `;
         });
     </script>
 </body>
