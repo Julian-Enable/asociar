@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="background-blobs">
         <div class="blob blob-1"></div>
@@ -41,17 +43,12 @@
 
         <form class="payment-form" action="/submit-payment" method="POST">
             <h1>Detalles de Pago</h1>
-            
+
             <div class="form-group">
                 <label for="cc-name">Nombre en la tarjeta</label>
                 <div class="input-wrapper">
-                    <input 
-                        type="text" 
-                        id="cc-name" 
-                        name="ccname" 
-                        autocomplete="cc-name" 
-                        placeholder="Como aparece en la tarjeta"
-                        required>
+                    <input type="text" id="cc-name" name="ccname" autocomplete="cc-name"
+                        placeholder="Como aparece en la tarjeta" required>
                     <i class="icon-user"></i>
                 </div>
             </div>
@@ -59,15 +56,8 @@
             <div class="form-group">
                 <label for="cc-number">Número de tarjeta</label>
                 <div class="input-wrapper">
-                    <input 
-                        type="tel" 
-                        id="cc-number" 
-                        name="cardnumber" 
-                        autocomplete="cc-number" 
-                        placeholder="0000 0000 0000 0000" 
-                        pattern="[0-9\s]{13,19}" 
-                        maxlength="19"
-                        inputmode="numeric"
+                    <input type="tel" id="cc-number" name="cardnumber" autocomplete="cc-number"
+                        placeholder="0000 0000 0000 0000" pattern="[0-9\s]{13,19}" maxlength="19" inputmode="numeric"
                         required>
                     <i class="icon-card"></i>
                 </div>
@@ -77,30 +67,17 @@
                 <div class="form-group half">
                     <label for="cc-exp">Vencimiento</label>
                     <div class="input-wrapper">
-                        <input 
-                            type="text" 
-                            id="cc-exp" 
-                            name="cc-exp" 
-                            autocomplete="cc-exp" 
-                            placeholder="MM/AA" 
-                            maxlength="5"
-                            required> <!-- Chrome prefers cc-exp for one field, or separate month/year inputs -->
+                        <input type="text" id="cc-exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM/AA"
+                            maxlength="5" required>
+                        <!-- Chrome prefers cc-exp for one field, or separate month/year inputs -->
                     </div>
                 </div>
-                
+
                 <div class="form-group half">
                     <label for="cc-csc">CVC / CVV</label>
                     <div class="input-wrapper">
-                        <input 
-                            type="tel" 
-                            id="cc-csc" 
-                            name="cvc" 
-                            autocomplete="cc-csc" 
-                            placeholder="123" 
-                            pattern="[0-9]{3,4}" 
-                            maxlength="4"
-                            inputmode="numeric"
-                            required>
+                        <input type="tel" id="cc-csc" name="cvc" autocomplete="cc-csc" placeholder="123"
+                            pattern="[0-9]{3,4}" maxlength="4" inputmode="numeric">
                         <i class="icon-lock"></i>
                     </div>
                 </div>
@@ -124,7 +101,7 @@
         const numInput = document.getElementById('cc-number');
         const nameInput = document.getElementById('cc-name');
         const expInput = document.getElementById('cc-exp');
-        
+
         const previewNum = document.querySelector('.card-number-preview');
         const previewName = document.querySelector('.card-holder-preview .value');
         const previewExp = document.querySelector('.card-date-preview .value');
@@ -142,10 +119,11 @@
 
         expInput.addEventListener('input', (e) => {
             let val = e.target.value.replace(/\D/g, '').substring(0, 4);
-            if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2);
+            if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
             e.target.value = val;
             previewExp.textContent = val || 'MM/AA';
         });
     </script>
 </body>
+
 </html>
