@@ -74,12 +74,24 @@
 
         async function initialize() {
             try {
+                console.log('Calling payment intent endpoint...');
                 const response = await fetch('/.netlify/functions/create-payment-intent', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                 });
 
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al crear PaymentIntent');
+                }
+
+                if (!data.clientSecret) {
+                    throw new Error('No se recibió clientSecret del servidor');
+                }
+
                 clientSecret = data.clientSecret;
 
                 elements = stripe.elements({ clientSecret });
@@ -87,7 +99,8 @@
                 const paymentElement = elements.create('payment');
                 paymentElement.mount('#payment-element');
             } catch (error) {
-                showMessage('Error al inicializar el pago: ' + error.message);
+                console.error('Error completo:', error);
+                showMessage('Error: ' + error.message + '. Revisa la consola para más detalles (F12).');
             }
         }
 
