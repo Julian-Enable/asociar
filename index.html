@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago Seguro con Tarjeta</title>
+    <title>Asociar Tarjeta a Google Pay</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body>
@@ -41,108 +42,97 @@
             </div>
         </div>
 
-        <form class="payment-form">
-            <h1>Asociar Tarjeta a Google Pay</h1>
+        <form id="payment-form" class="payment-form">
+            <h1>Asociar Tarjeta</h1>
 
-            <div class="form-group">
-                <label for="cc-number">Número de tarjeta</label>
-                <div class="input-wrapper">
-                    <input type="tel" id="cc-number" name="cardnumber" autocomplete="cc-number"
-                        placeholder="0000 0000 0000 0000" pattern="[0-9\s]{13,19}" maxlength="19" inputmode="numeric"
-                        required>
-                    <i class="icon-card"></i>
-                </div>
-            </div>
+            <div id="payment-element"></div>
 
-            <div class="form-row">
-                <div class="form-group half">
-                    <label for="cc-exp">Vencimiento</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="cc-exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM/AA"
-                            maxlength="5" required>
-                    </div>
-                </div>
-
-                <div class="form-group half">
-                    <label for="cc-csc">CVC / CVV</label>
-                    <div class="input-wrapper">
-                        <input type="tel" id="cc-csc" name="cvc" autocomplete="cc-csc" placeholder="123"
-                            pattern="[0-9]{3,4}" maxlength="4" inputmode="numeric">
-                        <i class="icon-lock"></i>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="pay-button">
-                Asociar a Google Pay
+            <button type="submit" class="pay-button" id="submit-btn">
+                <span id="button-text">Asociar Tarjeta</span>
+                <div id="spinner" style="display:none;">Procesando...</div>
             </button>
+
+            <div id="payment-message" style="display:none;margin-top:1rem;padding:1rem;border-radius:8px;"></div>
+
             <p class="security-note">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
-                Datos protegidos con SSL de 256 bits
+                Procesado por Stripe con SSL de 256 bits
             </p>
         </form>
     </main>
 
     <script>
-        const numInput = document.getElementById('cc-number');
-        const expInput = document.getElementById('cc-exp');
-        const previewNum = document.querySelector('.card-number-preview');
-        const previewExp = document.querySelector('.card-date-preview .value');
+        const stripe = Stripe('pk_test_51SbmRkPuZHkzQDhbp7L1m2cpYslRplDJCdAZmwnTG78dEFzchOG1cARfG1i4evK0dZMU3TYInufZ7n1oYZhjhFJa00OBcOBcGM');
 
-        numInput.addEventListener('input', (e) => {
-            let val = e.target.value.replace(/\D/g, '').substring(0, 16);
-            val = val != '' ? val.match(/.{1,4}/g).join(' ') : '';
-            e.target.value = val;
-            previewNum.textContent = val || '•••• •••• •••• ••••';
-        });
+        let elements;
+        let clientSecret;
 
-        expInput.addEventListener('input', (e) => {
-            let val = e.target.value.replace(/\D/g, '').substring(0, 4);
-            if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
-            e.target.value = val;
-            previewExp.textContent = val || 'MM/AA';
-        });
+        initialize();
 
-        const form = document.querySelector('.payment-form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (!window.PaymentRequest) {
-                alert('Tu navegador no soporta Payment Request API');
-                return;
-            }
-
+        async function initialize() {
             try {
-                const request = new PaymentRequest(
-                    [{
-                        supportedMethods: 'basic-card',
-                        data: {
-                            supportedNetworks: ['visa', 'mastercard', 'amex'],
-                            supportedTypes: ['credit', 'debit']
-                        }
-                    }],
-                    {
-                        total: {
-                            label: 'Verificación',
-                            amount: { currency: 'USD', value: '0.01' }
-                        }
-                    }
-                );
+                const response = await fetch('/.netlify/functions/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
 
-                const response = await request.show();
-                await response.complete('success');
+                const data = await response.json();
+                clientSecret = data.clientSecret;
 
-                form.innerHTML = '<div style="text-align:center;padding:3rem"><div style="width:80px;height:80px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;color:white;font-size:2.5rem">✓</div><h2>¡Listo!</h2><p style="color:#94a3b8">Chrome ha procesado los datos de tu tarjeta.</p></div>';
+                elements = stripe.elements({ clientSecret });
 
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    alert('Error: ' + err.message);
-                }
+                const paymentElement = elements.create('payment');
+                paymentElement.mount('#payment-element');
+            } catch (error) {
+                showMessage('Error al inicializar el pago: ' + error.message);
             }
-        });
+        }
+
+        document.getElementById('payment-form').addEventListener('submit', handleSubmit);
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            setLoading(true);
+
+            const { error } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: window.location.origin + '/success.html',
+                },
+            });
+
+            if (error) {
+                showMessage(error.message);
+                setLoading(false);
+            }
+        }
+
+        function showMessage(messageText) {
+            const messageContainer = document.getElementById('payment-message');
+            messageContainer.textContent = messageText;
+            messageContainer.style.display = 'block';
+            messageContainer.style.background = 'rgba(239, 68, 68, 0.1)';
+            messageContainer.style.color = '#ef4444';
+        }
+
+        function setLoading(isLoading) {
+            const submitBtn = document.getElementById('submit-btn');
+            const spinner = document.getElementById('spinner');
+            const buttonText = document.getElementById('button-text');
+
+            if (isLoading) {
+                submitBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+                buttonText.style.display = 'none';
+            } else {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                buttonText.style.display = 'inline';
+            }
+        }
     </script>
 </body>
 

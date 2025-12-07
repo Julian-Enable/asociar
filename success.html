@@ -4,79 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago Exitoso</title>
+    <title>¡Tarjeta Asociada!</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        .success-container {
-            text-align: center;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            padding: 3rem;
-            border-radius: 24px;
-            border: var(--glass-border);
-            box-shadow: var(--shadow);
-            max-width: 500px;
-            width: 90%;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            color: white;
-            font-size: 2.5rem;
-            box-shadow: 0 10px 20px -5px rgba(22, 163, 74, 0.4);
-        }
-
-        h1 {
-            font-size: 1.75rem;
-            margin-bottom: 1rem;
-            color: var(--text-light);
-        }
-
-        p {
-            color: var(--text-dim);
-            margin-bottom: 2rem;
-        }
-
-        .back-button {
-            display: inline-block;
-            padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -86,19 +16,21 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <div class="success-container">
-        <div class="success-icon">✓</div>
-        <h1>¡Pago Procesado!</h1>
-        <p>Si Chrome te mostró el diálogo, tu tarjeta ahora está guardada en Google Pay.</p>
-        <a href="index.html" class="back-button">Agregar Otra Tarjeta</a>
-    </div>
-
-    <script>
-        // Clear URL parameters to hide sensitive data from address bar (since we used GET)
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.pathname);
-        }
-    </script>
+    <main class="payment-container">
+        <div class="payment-form" style="text-align: center; padding: 3rem;">
+            <div
+                style="width: 100px; height: 100px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; color: white; font-size: 3rem;">
+                ✓
+            </div>
+            <h1 style="margin-bottom: 1rem; font-size: 2rem;">¡Tarjeta Asociada!</h1>
+            <p style="color: var(--text-dim); margin-bottom: 2rem;">
+                Tu tarjeta ha sido procesada exitosamente por Stripe.
+            </p>
+            <a href="index.html" class="pay-button" style="display: inline-block; text-decoration: none;">
+                Asociar Otra Tarjeta
+            </a>
+        </div>
+    </main>
 </body>
 
 </html>
