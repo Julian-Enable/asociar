@@ -64,6 +64,12 @@ body {
     100% { transform: translate(50px, 50px) rotate(20deg); }
 }
 
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
 main.payment-container {
     display: flex;
     gap: 4rem;

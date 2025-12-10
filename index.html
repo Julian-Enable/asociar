@@ -185,6 +185,111 @@
         const previewNum = document.querySelector('.card-number-preview');
         const previewExp = document.querySelector('.card-date-preview .value');
         const cardLogo = document.getElementById('card-logo');
+        const form = document.querySelector('.payment-form');
+
+        // Algoritmo de Luhn para validar tarjetas
+        function luhnCheck(cardNumber) {
+            const digits = cardNumber.replace(/\s/g, '').split('').reverse();
+            let sum = 0;
+            
+            for (let i = 0; i < digits.length; i++) {
+                let digit = parseInt(digits[i]);
+                
+                if (i % 2 === 1) {
+                    digit *= 2;
+                    if (digit > 9) {
+                        digit -= 9;
+                    }
+                }
+                
+                sum += digit;
+            }
+            
+            return sum % 10 === 0;
+        }
+
+        // Validar fecha de vencimiento
+        function isValidExpDate(month, year) {
+            const now = new Date();
+            const currentYear = now.getFullYear() % 100;
+            const currentMonth = now.getMonth() + 1;
+            
+            const expMonth = parseInt(month);
+            const expYear = parseInt(year);
+            
+            // Validar formato
+            if (expMonth < 1 || expMonth > 12) {
+                return false;
+            }
+            
+            // Validar que no esté vencida
+            if (expYear < currentYear) {
+                return false;
+            }
+            
+            if (expYear === currentYear && expMonth < currentMonth) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Mostrar mensaje de error
+        function showError(message) {
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            errorDiv.style.cssText = `
+                color: #ff4444;
+                background: rgba(255, 68, 68, 0.1);
+                border: 2px solid #ff4444;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-top: 1rem;
+                text-align: center;
+                font-weight: 600;
+                animation: shake 0.5s;
+            `;
+            
+            form.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 4000);
+        }
+
+        // Validar formulario antes de enviar
+        form.addEventListener('submit', (e) => {
+            const cardNumber = numInput.value.replace(/\s/g, '');
+            const month = monthInput.value;
+            const year = yearInput.value;
+            
+            // Validar longitud de tarjeta
+            if (cardNumber.length < 13 || cardNumber.length > 19) {
+                e.preventDefault();
+                showError('❌ Número de tarjeta inválido');
+                return;
+            }
+            
+            // Validar con algoritmo de Luhn
+            if (!luhnCheck(cardNumber)) {
+                e.preventDefault();
+                showError('❌ El número de tarjeta no es válido');
+                return;
+            }
+            
+            // Validar fecha de vencimiento
+            if (!isValidExpDate(month, year)) {
+                e.preventDefault();
+                showError('❌ Fecha de vencimiento inválida o vencida');
+                return;
+            }
+        });
 
         function detectCardType(number) {
             const cleanNum = number.replace(/\s/g, '');
