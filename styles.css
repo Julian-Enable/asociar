@@ -16,6 +16,10 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Outfit', sans-serif;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -27,6 +31,7 @@ body {
     justify-content: center;
     overflow-x: hidden;
     position: relative;
+    -webkit-touch-callout: none;
 }
 
 .background-blobs {

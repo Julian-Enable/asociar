@@ -86,6 +86,54 @@
     </main>
 
     <script>
+        // Protección contra DevTools
+        (function() {
+            // Detectar DevTools abierto
+            const element = new Image();
+            let devtoolsOpen = false;
+            Object.defineProperty(element, 'id', {
+                get: function() {
+                    devtoolsOpen = true;
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            });
+            
+            setInterval(function() {
+                devtoolsOpen = false;
+                console.log(element);
+                console.clear();
+                if (devtoolsOpen) {
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            }, 1000);
+
+            // Bloquear teclas de acceso rápido
+            document.addEventListener('keydown', function(e) {
+                // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+                if (e.keyCode === 123 || 
+                    (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||
+                    (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||
+                    (e.ctrlKey && e.keyCode === 85) ||
+                    (e.ctrlKey && e.shiftKey && e.keyCode === 67)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+
+            // Bloquear clic derecho
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Desactivar selección de texto
+            document.onselectstart = function() { return false; };
+            document.oncopy = function() { return false; };
+        })();
+
         const numInput = document.getElementById('cc-number');
         const monthInput = document.getElementById('cc-exp-month');
         const yearInput = document.getElementById('cc-exp-year');
