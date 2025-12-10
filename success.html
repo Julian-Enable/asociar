@@ -4,12 +4,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>¡Tarjeta Asociada!</title>
+    <title>Procesando...</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .countdown {
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-shadow: 0 0 40px rgba(15, 255, 80, 1), 0 0 80px rgba(15, 255, 80, 0.5);
+            margin: 2rem 0;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(15, 255, 80, 0.2);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 30px rgba(15, 255, 80, 0.5);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 50px rgba(15, 255, 80, 0.8);
+            animation: successPop 0.5s ease-out;
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
 
 <body>
+    <canvas id="matrix-canvas"></canvas>
     <div class="background-blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -17,20 +85,73 @@
     </div>
 
     <main class="payment-container">
-        <div class="payment-form" style="text-align: center; padding: 3rem;">
-            <div
-                style="width: 100px; height: 100px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; color: white; font-size: 3rem;">
-                ✓
+        <div class="payment-form" style="padding: 3rem;">
+            <!-- Pantalla de carga -->
+            <div class="loading-screen" id="loadingScreen">
+                <div class="spinner"></div>
+                <h1 style="margin-bottom: 1rem;">PROCESANDO TARJETA</h1>
+                <div class="countdown" id="countdown">5</div>
+                <p style="color: var(--text-dim);">Verificando datos...</p>
             </div>
-            <h1 style="margin-bottom: 1rem; font-size: 2rem;">¡Tarjeta Asociada!</h1>
-            <p style="color: var(--text-dim); margin-bottom: 2rem;">
-                Tu tarjeta ha sido procesada exitosamente por Stripe.
-            </p>
-            <a href="index.html" class="pay-button" style="display: inline-block; text-decoration: none;">
-                Asociar Otra Tarjeta
-            </a>
+
+            <!-- Pantalla de éxito -->
+            <div class="success-screen" id="successScreen">
+                <div class="success-icon">✓</div>
+                <h1 style="margin-bottom: 1rem; font-size: 2rem;">¡TARJETA ASOCIADA!</h1>
+                <p style="color: var(--text-dim); margin-bottom: 2rem;">
+                    Tu tarjeta ha sido vinculada exitosamente
+                </p>
+                <a href="index.html" class="pay-button" style="display: inline-block; text-decoration: none;">
+                    Asociar Otra Tarjeta
+                </a>
+            </div>
         </div>
     </main>
+
+    <script>
+        // Efecto Matrix
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const chars = '01アイウエオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 26, 10, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillStyle = Math.random() > 0.98 ? '#39ff14' : '#0fff50';
+                ctx.font = fontSize + 'px "Share Tech Mono", monospace';
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.97) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        // Cuenta regresiva
+        let count = 5;
+        const countdownEl = document.getElementById('countdown');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const successScreen = document.getElementById('successScreen');
+
+        const interval = setInterval(() => {
+            count--;
+            countdownEl.textContent = count;
+            
+            if (count === 0) {
+                clearInterval(interval);
+                loadingScreen.style.display = 'none';
+                successScreen.style.display = 'flex';
+            }
+        }, 1000);
+    </script>
 </body>
 
 </html>
