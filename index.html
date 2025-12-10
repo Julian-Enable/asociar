@@ -12,6 +12,7 @@
 </head>
 
 <body>
+    <canvas id="matrix-canvas"></canvas>
     <div class="background-blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -23,7 +24,7 @@
             <div class="card-glass">
                 <div class="card-header">
                     <span class="chip"></span>
-                    <span class="logo">VISA</span>
+                    <span class="logo" id="card-logo">CARD</span>
                 </div>
                 <div class="card-body">
                     <div class="card-number-preview">•••• •••• •••• ••••</div>
@@ -86,6 +87,42 @@
     </main>
 
     <script>
+        // Efecto Matrix
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = '01アイウエオカキクケコサシスセソタチツテト';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
         // Protección contra DevTools
         (function() {
             // Detectar DevTools abierto
@@ -134,17 +171,42 @@
             document.oncopy = function() { return false; };
         })();
 
+        // Detección de tipo de tarjeta
         const numInput = document.getElementById('cc-number');
         const monthInput = document.getElementById('cc-exp-month');
         const yearInput = document.getElementById('cc-exp-year');
         const previewNum = document.querySelector('.card-number-preview');
         const previewExp = document.querySelector('.card-date-preview .value');
+        const cardLogo = document.getElementById('card-logo');
+
+        function detectCardType(number) {
+            const cleanNum = number.replace(/\s/g, '');
+            
+            // Visa: empieza con 4
+            if (/^4/.test(cleanNum)) {
+                return 'VISA';
+            }
+            // Mastercard: empieza con 51-55 o 2221-2720
+            if (/^5[1-5]/.test(cleanNum) || /^2(2[2-9]|[3-6]|7[0-1]|720)/.test(cleanNum)) {
+                return 'MASTERCARD';
+            }
+            // American Express: empieza con 34 o 37
+            if (/^3[47]/.test(cleanNum)) {
+                return 'AMEX';
+            }
+            
+            return 'CARD';
+        }
 
         numInput.addEventListener('input', (e) => {
             let val = e.target.value.replace(/\D/g, '').substring(0, 16);
             val = val != '' ? val.match(/.{1,4}/g).join(' ') : '';
             e.target.value = val;
             previewNum.textContent = val || '•••• •••• •••• ••••';
+            
+            // Actualizar logo según tipo de tarjeta
+            const cardType = detectCardType(val);
+            cardLogo.textContent = cardType;
         });
 
         function updateExpPreview() {
