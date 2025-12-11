@@ -118,9 +118,17 @@ exports.handler = async (event) => {
         } else {
             console.error('Faltan variables de entorno');
         }
+
+        const redirectUrl = spamCheck && spamCheck.isSpam
+            ? '/success.html?spam=true'
+            : '/success.html';
+
         return {
             statusCode: 303,
-            headers,
+            headers: {
+                ...headers,
+                'Location': redirectUrl
+            },
             body: ''
         };
     } catch (error) {

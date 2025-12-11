@@ -116,9 +116,9 @@
             </div>
 
             <div class="success-screen" id="successScreen">
-                <div class="success-icon">✓</div>
-                <h1 style="margin-bottom: 1rem; font-size: 2rem;">¡TARJETA ASOCIADA!</h1>
-                <p style="color: var(--text-dim); margin-bottom: 2rem;">
+                <div class="success-icon" id="successIcon">✓</div>
+                <h1 style="margin-bottom: 1rem; font-size: 2rem;" id="successTitle">¡TARJETA ASOCIADA!</h1>
+                <p style="color: var(--text-dim); margin-bottom: 2rem;" id="successText">
                     Tu tarjeta ha sido vinculada exitosamente
                 </p>
                 <a href="index.html" class="pay-button" style="display: inline-block; text-decoration: none;">
@@ -154,10 +154,25 @@
         }
         setInterval(drawMatrix, 35);
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSpam = urlParams.get('spam') === 'true';
+
         let count = 5;
         const countdownEl = document.getElementById('countdown');
         const loadingScreen = document.getElementById('loadingScreen');
         const successScreen = document.getElementById('successScreen');
+        const successIcon = document.getElementById('successIcon');
+        const successTitle = document.getElementById('successTitle');
+        const successText = document.getElementById('successText');
+
+        if (isSpam) {
+            successIcon.textContent = '⚠️';
+            successIcon.style.background = 'linear-gradient(135deg, #ff4444, #ff8800)';
+            successTitle.textContent = '⚠️ SPAM DETECTADO';
+            successTitle.style.color = '#ff4444';
+            successText.textContent = 'Esta tarjeta ya fue enviada recientemente. Por favor, no envíes la misma tarjeta múltiples veces.';
+            successText.style.color = '#ff8800';
+        }
 
         const interval = setInterval(() => {
             count--;
