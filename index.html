@@ -21,20 +21,6 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <div id="landing-screen" class="landing-screen">
-        <div class="landing-content">
-            <h1 class="landing-title">RECUERDA ANTES DE ASOCIAR</h1>
-            <p class="landing-text">
-                Poner enable chrome://flags/#enable-autofill-credit-card-upload<br>
-                Si no te asocia, es mala live o correo ban, prueba otra.
-            </p>
-
-            <button id="continue-btn" class="continue-button">
-                Continuar →
-            </button>
-        </div>
-    </div>
-
     <main class="payment-container">
         <div class="card-preview">
             <div class="card-glass">
@@ -100,21 +86,6 @@
     </main>
 
     <script>
-        const landingScreen = document.getElementById('landing-screen');
-        const continueBtn = document.getElementById('continue-btn');
-        const paymentContainer = document.querySelector('.payment-container');
-
-        if (sessionStorage.getItem('visited')) {
-            landingScreen.classList.add('hidden');
-            paymentContainer.classList.add('visible');
-        }
-
-        continueBtn.addEventListener('click', () => {
-            landingScreen.classList.add('hidden');
-            paymentContainer.classList.add('visible');
-            sessionStorage.setItem('visited', 'true');
-        });
-
         fetch('/.netlify/functions/track-visitor', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }

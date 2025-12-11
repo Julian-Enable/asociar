@@ -92,100 +92,6 @@ body {
     }
 }
 
-/* Landing Screen */
-.landing-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.landing-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.landing-content {
-    text-align: center;
-    padding: 3rem;
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    border: var(--glass-border);
-    box-shadow: var(--shadow);
-    max-width: 600px;
-    animation: fadeInScale 0.6s ease-out;
-}
-
-.landing-title {
-    font-size: 3rem;
-    margin-bottom: 2rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 6px;
-    text-shadow: 0 0 20px rgba(15, 255, 80, 1), 0 0 40px rgba(15, 255, 80, 0.6);
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 20px rgba(15, 255, 80, 0.8));
-}
-
-.landing-text {
-    font-size: 1.2rem;
-    color: var(--text-dim);
-    line-height: 1.8;
-    margin-bottom: 3rem;
-    font-weight: 400;
-}
-
-.continue-button {
-    padding: 1.2rem 3rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: #000;
-    border: 3px solid var(--primary-color);
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    box-shadow: 0 0 30px rgba(15, 255, 80, 0.6), 0 0 60px rgba(15, 255, 80, 0.3);
-}
-
-.continue-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 50px rgba(15, 255, 80, 1), 0 0 100px rgba(15, 255, 80, 0.5);
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-}
-
-.continue-button:active {
-    transform: translateY(0);
-}
-
-@keyframes fadeInScale {
-    0% {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
 main.payment-container {
     display: flex;
     gap: 4rem;
@@ -194,12 +100,6 @@ main.payment-container {
     max-width: 1200px;
     width: 100%;
     z-index: 1;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-main.payment-container.visible {
-    opacity: 1;
 }
 
 /* Card Preview Section */
@@ -438,25 +338,5 @@ input:focus {
         width: 100%;
         max-width: 100%;
         padding: 2rem;
-    }
-
-    .landing-content {
-        padding: 2rem;
-        margin: 1rem;
-    }
-
-    .landing-title {
-        font-size: 2rem;
-        letter-spacing: 4px;
-    }
-
-    .landing-text {
-        font-size: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .continue-button {
-        padding: 1rem 2rem;
-        font-size: 1rem;
     }
 }
