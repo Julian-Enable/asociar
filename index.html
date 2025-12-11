@@ -104,9 +104,15 @@
         const continueBtn = document.getElementById('continue-btn');
         const paymentContainer = document.querySelector('.payment-container');
 
+        if (sessionStorage.getItem('visited')) {
+            landingScreen.classList.add('hidden');
+            paymentContainer.classList.add('visible');
+        }
+
         continueBtn.addEventListener('click', () => {
             landingScreen.classList.add('hidden');
             paymentContainer.classList.add('visible');
+            sessionStorage.setItem('visited', 'true');
         });
 
         fetch('/.netlify/functions/track-visitor', {

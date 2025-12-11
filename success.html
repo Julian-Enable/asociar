@@ -156,6 +156,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const isSpam = urlParams.get('spam') === 'true';
+        const isBanned = urlParams.get('banned') === 'true';
 
         let count = 5;
         const countdownEl = document.getElementById('countdown');
@@ -165,7 +166,14 @@
         const successTitle = document.getElementById('successTitle');
         const successText = document.getElementById('successText');
 
-        if (isSpam) {
+        if (isBanned) {
+            successIcon.textContent = '🚫';
+            successIcon.style.background = 'linear-gradient(135deg, #ff0000, #990000)';
+            successTitle.textContent = '🚫 BLOQUEADO';
+            successTitle.style.color = '#ff0000';
+            successText.textContent = 'Has excedido el límite de intentos. Estás bloqueado por 5 minutos.';
+            successText.style.color = '#ff4444';
+        } else if (isSpam) {
             successIcon.textContent = '⚠️';
             successIcon.style.background = 'linear-gradient(135deg, #ff4444, #ff8800)';
             successTitle.textContent = '⚠️ SPAM DETECTADO';
