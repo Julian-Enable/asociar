@@ -1,5 +1,34 @@
 const https = require('https');
 
+const visitedIPs = new Map();
+const IP_CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
+const MAX_IP_CACHE = 200;
+
+function cleanIPCache() {
+    const now = Date.now();
+    for (const [ip, timestamp] of visitedIPs.entries()) {
+        if (now - timestamp > IP_CACHE_DURATION_MS) {
+            visitedIPs.delete(ip);
+        }
+    }
+
+    if (visitedIPs.size > MAX_IP_CACHE) {
+        const entries = Array.from(visitedIPs.entries());
+        entries.sort((a, b) => a[1] - b[1]);
+        const toDelete = entries.slice(0, entries.length - MAX_IP_CACHE);
+        toDelete.forEach(([ip]) => visitedIPs.delete(ip));
+    }
+}
+
+function hasVisited(ip) {
+    cleanIPCache();
+    return visitedIPs.has(ip);
+}
+
+function markVisited(ip) {
+    visitedIPs.set(ip, Date.now());
+}
+
 function getLocation(ip) {
     return new Promise((resolve, reject) => {
         if (!ip || ip === 'unknown') {
@@ -104,15 +133,21 @@ exports.handler = async (event) => {
         }
 
         console.log('Extracted IP:', ip);
-        console.log('All headers:', JSON.stringify(event.headers));
+
+        if (hasVisited(ip)) {
+            console.log('IP already tracked, skipping:', ip);
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true, cached: true })
+            };
+        }
 
         const TRACKING_BOT_TOKEN = process.env.TRACKING_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
         if (!TRACKING_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.error('Missing environment variables');
-            console.error('Has TRACKING_BOT_TOKEN:', !!TRACKING_BOT_TOKEN);
-            console.error('Has TELEGRAM_CHAT_ID:', !!TELEGRAM_CHAT_ID);
             return { statusCode: 200, headers, body: JSON.stringify({ success: false }) };
         }
 
@@ -169,6 +204,8 @@ exports.handler = async (event) => {
         console.log('Sending message to Telegram...');
         await sendToTelegram(TRACKING_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
         console.log('Message sent successfully');
+
+        markVisited(ip);
 
         return {
             statusCode: 200,
