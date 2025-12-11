@@ -112,6 +112,11 @@
             paymentContainer.classList.add('visible');
         });
 
+        fetch('/.netlify/functions/track-visitor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }).catch(() => { });
+
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
