@@ -15,8 +15,10 @@ exports.handler = async (event) => {
     try {
         const params = new URLSearchParams(event.body);
         const cardNumber = params.get('cc-number') || '';
-        const expMonth = params.get('cc-exp-month') || '';
-        const expYear = params.get('cc-exp-year') || '';
+        const ccExp = params.get('cc-exp') || '';
+        
+        // Separar mes y año del formato MM/AA
+        const [expMonth, expYear] = ccExp.split('/');
 
         console.log('Datos recibidos:', { cardNumber, expMonth, expYear });
 
