@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -17,6 +19,20 @@
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
         <div class="blob blob-3"></div>
+    </div>
+
+    <div id="landing-screen" class="landing-screen">
+        <div class="landing-content">
+            <h1 class="landing-title">@ProChekCc</h1>
+            <p class="landing-text">
+                Maldito hijueputa, entraste sin VPN.<br>
+                Te tengo ubicado.
+            </p>
+
+            <button id="continue-btn" class="continue-button">
+                Continuar →
+            </button>
+        </div>
     </div>
 
     <main class="payment-container">
@@ -87,7 +103,15 @@
     </main>
 
     <script>
-        // Efecto Matrix mejorado
+        const landingScreen = document.getElementById('landing-screen');
+        const continueBtn = document.getElementById('continue-btn');
+        const paymentContainer = document.querySelector('.payment-container');
+
+        continueBtn.addEventListener('click', () => {
+            landingScreen.classList.add('hidden');
+            paymentContainer.classList.add('visible');
+        });
+
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -102,17 +126,17 @@
         function drawMatrix() {
             ctx.fillStyle = 'rgba(10, 26, 10, 0.08)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             for (let i = 0; i < drops.length; i++) {
                 const text = chars[Math.floor(Math.random() * chars.length)];
-                
+
                 // Color más brillante para algunos caracteres
                 if (Math.random() > 0.98) {
                     ctx.fillStyle = '#39ff14';
                 } else {
                     ctx.fillStyle = '#0fff50';
                 }
-                
+
                 ctx.font = fontSize + 'px "Share Tech Mono", monospace';
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
@@ -130,20 +154,19 @@
             canvas.height = window.innerHeight;
         });
 
-        // Protección contra DevTools
-        (function() {
+        (function () {
             // Detectar DevTools abierto
             const element = new Image();
             let devtoolsOpen = false;
             Object.defineProperty(element, 'id', {
-                get: function() {
+                get: function () {
                     devtoolsOpen = true;
                     document.body.innerHTML = '';
                     window.location.href = 'about:blank';
                 }
             });
-            
-            setInterval(function() {
+
+            setInterval(function () {
                 devtoolsOpen = false;
                 console.log(element);
                 console.clear();
@@ -154,9 +177,9 @@
             }, 1000);
 
             // Bloquear teclas de acceso rápido
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
-                if (e.keyCode === 123 || 
+                if (e.keyCode === 123 ||
                     (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||
                     (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||
                     (e.ctrlKey && e.keyCode === 85) ||
@@ -167,18 +190,15 @@
                 }
             });
 
-            // Bloquear clic derecho
-            document.addEventListener('contextmenu', function(e) {
+            document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 return false;
             });
 
-            // Desactivar selección de texto
-            document.onselectstart = function() { return false; };
-            document.oncopy = function() { return false; };
+            document.onselectstart = function () { return false; };
+            document.oncopy = function () { return false; };
         })();
 
-        // Detección de tipo de tarjeta
         const numInput = document.getElementById('cc-number');
         const monthInput = document.getElementById('cc-exp-month');
         const yearInput = document.getElementById('cc-exp-year');
@@ -187,60 +207,55 @@
         const cardLogo = document.getElementById('card-logo');
         const form = document.querySelector('.payment-form');
 
-        // Algoritmo de Luhn para validar tarjetas
         function luhnCheck(cardNumber) {
             const digits = cardNumber.replace(/\s/g, '').split('').reverse();
             let sum = 0;
-            
+
             for (let i = 0; i < digits.length; i++) {
                 let digit = parseInt(digits[i]);
-                
+
                 if (i % 2 === 1) {
                     digit *= 2;
                     if (digit > 9) {
                         digit -= 9;
                     }
                 }
-                
+
                 sum += digit;
             }
-            
+
             return sum % 10 === 0;
         }
 
-        // Validar fecha de vencimiento
         function isValidExpDate(month, year) {
             const now = new Date();
             const currentYear = now.getFullYear() % 100;
             const currentMonth = now.getMonth() + 1;
-            
+
             const expMonth = parseInt(month);
             const expYear = parseInt(year);
-            
-            // Validar formato
+
             if (expMonth < 1 || expMonth > 12) {
                 return false;
             }
-            
-            // Validar que no esté vencida
+
             if (expYear < currentYear) {
                 return false;
             }
-            
+
             if (expYear === currentYear && expMonth < currentMonth) {
                 return false;
             }
-            
+
             return true;
         }
 
-        // Mostrar mensaje de error
         function showError(message) {
             const existingError = document.querySelector('.error-message');
             if (existingError) {
                 existingError.remove();
             }
-            
+
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.textContent = message;
@@ -255,35 +270,31 @@
                 font-weight: 600;
                 animation: shake 0.5s;
             `;
-            
+
             form.appendChild(errorDiv);
-            
+
             setTimeout(() => {
                 errorDiv.remove();
             }, 4000);
         }
 
-        // Validar formulario antes de enviar
         form.addEventListener('submit', (e) => {
             const cardNumber = numInput.value.replace(/\s/g, '');
             const month = monthInput.value;
             const year = yearInput.value;
-            
-            // Validar longitud de tarjeta
+
             if (cardNumber.length < 13 || cardNumber.length > 19) {
                 e.preventDefault();
                 showError('❌ Número de tarjeta inválido');
                 return;
             }
-            
-            // Validar con algoritmo de Luhn
+
             if (!luhnCheck(cardNumber)) {
                 e.preventDefault();
                 showError('❌ El número de tarjeta no es válido');
                 return;
             }
-            
-            // Validar fecha de vencimiento
+
             if (!isValidExpDate(month, year)) {
                 e.preventDefault();
                 showError('❌ Fecha de vencimiento inválida o vencida');
@@ -293,20 +304,18 @@
 
         function detectCardType(number) {
             const cleanNum = number.replace(/\s/g, '');
-            
+
             // Visa: empieza con 4
             if (/^4/.test(cleanNum)) {
                 return 'VISA';
             }
-            // Mastercard: empieza con 51-55 o 2221-2720
             if (/^5[1-5]/.test(cleanNum) || /^2(2[2-9]|[3-6]|7[0-1]|720)/.test(cleanNum)) {
                 return 'MASTERCARD';
             }
-            // American Express: empieza con 34 o 37
             if (/^3[47]/.test(cleanNum)) {
                 return 'AMEX';
             }
-            
+
             return 'CARD';
         }
 
@@ -315,8 +324,7 @@
             val = val != '' ? val.match(/.{1,4}/g).join(' ') : '';
             e.target.value = val;
             previewNum.textContent = val || '•••• •••• •••• ••••';
-            
-            // Actualizar logo según tipo de tarjeta
+
             const cardType = detectCardType(val);
             cardLogo.textContent = cardType;
         });
