@@ -2,10 +2,18 @@ const https = require('https');
 
 function getLocation(ip) {
     return new Promise((resolve, reject) => {
+        if (!ip || ip === 'unknown') {
+            reject(new Error('Invalid IP'));
+            return;
+        }
+
         const options = {
             hostname: 'ipapi.co',
             path: `/${ip}/json/`,
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0'
+            }
         };
 
         const req = https.request(options, (res) => {
@@ -13,18 +21,26 @@ function getLocation(ip) {
             res.on('data', (chunk) => data += chunk);
             res.on('end', () => {
                 try {
-                    resolve(JSON.parse(data));
+                    const parsed = JSON.parse(data);
+                    console.log('Location API response:', parsed);
+                    resolve(parsed);
                 } catch (e) {
+                    console.error('Parse error:', e);
                     reject(e);
                 }
             });
         });
 
-        req.on('error', reject);
-        req.setTimeout(5000, () => {
+        req.on('error', (error) => {
+            console.error('Request error:', error);
+            reject(error);
+        });
+
+        req.setTimeout(8000, () => {
             req.abort();
             reject(new Error('Timeout'));
         });
+
         req.end();
     });
 }
@@ -77,39 +93,82 @@ exports.handler = async (event) => {
     }
 
     try {
-        const ip = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+        let ip = event.headers['x-forwarded-for'];
+
+        if (ip && ip.includes(',')) {
+            ip = ip.split(',')[0].trim();
+        }
+
+        if (!ip) {
+            ip = event.headers['client-ip'] || 'unknown';
+        }
+
+        console.log('Extracted IP:', ip);
+        console.log('All headers:', JSON.stringify(event.headers));
 
         const TRACKING_BOT_TOKEN = process.env.TRACKING_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
         if (!TRACKING_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.error('Missing environment variables');
+            console.error('Has TRACKING_BOT_TOKEN:', !!TRACKING_BOT_TOKEN);
+            console.error('Has TELEGRAM_CHAT_ID:', !!TELEGRAM_CHAT_ID);
             return { statusCode: 200, headers, body: JSON.stringify({ success: false }) };
         }
 
-        let locationData;
+        let locationData = {
+            city: 'Unknown',
+            country_name: 'Unknown',
+            latitude: null,
+            longitude: null
+        };
+
         try {
-            locationData = await getLocation(ip);
+            const apiData = await getLocation(ip);
+            locationData = {
+                city: apiData.city || 'Unknown',
+                country_name: apiData.country_name || 'Unknown',
+                latitude: apiData.latitude || null,
+                longitude: apiData.longitude || null,
+                region: apiData.region || '',
+                org: apiData.org || ''
+            };
         } catch (error) {
-            console.error('Location error:', error);
-            locationData = { city: 'Unknown', country_name: 'Unknown', latitude: 0, longitude: 0 };
+            console.error('Location API error:', error.message);
         }
 
         const fecha = new Date().toLocaleString('es-AR', {
             timeZone: 'America/Argentina/Buenos_Aires'
         });
 
-        const message = `🌍 <b>NUEVO VISITANTE</b>
+        let message = `🌍 <b>NUEVO VISITANTE</b>
 
 📍 <b>IP:</b> ${ip}
-🏙️ <b>Ciudad:</b> ${locationData.city || 'Unknown'}
-🌎 <b>País:</b> ${locationData.country_name || 'Unknown'}
-📌 <b>Coordenadas:</b> ${locationData.latitude}, ${locationData.longitude}
-🕐 <b>Fecha:</b> ${fecha}
+🏙️ <b>Ciudad:</b> ${locationData.city}
+🌎 <b>País:</b> ${locationData.country_name}`;
 
-${locationData.latitude && locationData.longitude ? `🗺️ <a href="https://www.google.com/maps?q=${locationData.latitude},${locationData.longitude}">Ver en Google Maps</a>` : ''}`;
+        if (locationData.latitude && locationData.longitude) {
+            message += `
+📌 <b>Coordenadas:</b> ${locationData.latitude}, ${locationData.longitude}`;
+        }
 
+        if (locationData.org) {
+            message += `
+🏢 <b>ISP:</b> ${locationData.org}`;
+        }
+
+        message += `
+🕐 <b>Fecha:</b> ${fecha}`;
+
+        if (locationData.latitude && locationData.longitude) {
+            message += `
+
+🗺️ <a href="https://www.google.com/maps?q=${locationData.latitude},${locationData.longitude}">Ver en Google Maps</a>`;
+        }
+
+        console.log('Sending message to Telegram...');
         await sendToTelegram(TRACKING_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
+        console.log('Message sent successfully');
 
         return {
             statusCode: 200,
@@ -117,11 +176,11 @@ ${locationData.latitude && locationData.longitude ? `🗺️ <a href="https://ww
             body: JSON.stringify({ success: true })
         };
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Handler error:', error);
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ success: false })
+            body: JSON.stringify({ success: false, error: error.message })
         };
     }
 };
