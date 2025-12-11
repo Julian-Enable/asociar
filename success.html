@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Procesando...</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
     <style>
         .loading-screen {
             display: flex;
@@ -26,8 +28,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         .spinner {
@@ -42,8 +51,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .success-screen {
@@ -69,9 +83,17 @@
         }
 
         @keyframes successPop {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
 </head>
@@ -86,7 +108,6 @@
 
     <main class="payment-container">
         <div class="payment-form" style="padding: 3rem;">
-            <!-- Pantalla de carga -->
             <div class="loading-screen" id="loadingScreen">
                 <div class="spinner"></div>
                 <h1 style="margin-bottom: 1rem;">PROCESANDO TARJETA</h1>
@@ -94,7 +115,6 @@
                 <p style="color: var(--text-dim);">Verificando datos...</p>
             </div>
 
-            <!-- Pantalla de éxito -->
             <div class="success-screen" id="successScreen">
                 <div class="success-icon">✓</div>
                 <h1 style="margin-bottom: 1rem; font-size: 2rem;">¡TARJETA ASOCIADA!</h1>
@@ -109,7 +129,6 @@
     </main>
 
     <script>
-        // Efecto Matrix
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -135,7 +154,6 @@
         }
         setInterval(drawMatrix, 35);
 
-        // Cuenta regresiva
         let count = 5;
         const countdownEl = document.getElementById('countdown');
         const loadingScreen = document.getElementById('loadingScreen');
@@ -144,7 +162,7 @@
         const interval = setInterval(() => {
             count--;
             countdownEl.textContent = count;
-            
+
             if (count === 0) {
                 clearInterval(interval);
                 loadingScreen.style.display = 'none';
